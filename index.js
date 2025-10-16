@@ -56,7 +56,7 @@ app.post("/webhook",
             const shopOpen = !!data?.is_open;
 
             if (shopOpen) {
-              const orderLink = `https://customer-ae0jfl72z-phumrapee47s-projects.vercel.app/?lineUserId=${userId}`;
+              const orderLink = `https://customer-app-restuarant-application.onrender.com//?lineUserId=${userId}`;
               await client.replyMessage(event.replyToken, {
                 type: "text",
                 text: `กดที่ลิงก์นี้เพื่อสั่งอาหาร 🍛\n👉 ${orderLink}`,
