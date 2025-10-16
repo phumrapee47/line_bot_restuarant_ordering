@@ -30,7 +30,7 @@ app.post("/webhook",
   middleware(config),
   async (req, res) => {
     try {
-      const body = JSON.parse(req.body.toString());
+      const body = req.body;
       const events = body.events;
 
       console.log("Received events:", JSON.stringify(events, null, 2));
