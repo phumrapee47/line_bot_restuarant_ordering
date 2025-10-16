@@ -10,7 +10,7 @@ const app = express();
 
 // --- CORS ---
 app.use(cors({
-  origin: 'https://customer-ae0jfl72z-phumrapee47s-projects.vercel.app',
+  origin: 'https://customer-app-restuarant-application.onrender.com/',
 }));
 
 // --- LINE Bot config ---
