@@ -167,6 +167,7 @@ app.post("/api/notify-order-status", async (req, res) => {
 
 // Health check endpoint
 app.get("/", (req, res) => {
+  res.send('LINE Bot server running');
   res.json({
     status: "✅ LINE Bot Server is running!",
     endpoints: {
