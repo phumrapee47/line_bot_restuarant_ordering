@@ -15,7 +15,9 @@ app.use(cors({
     'https://admin-dashboard-restuarant-application.onrender.com', // เพิ่ม URL ของ Admin Dashboard
     'http://localhost:5173' // สำหรับ dev
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // เพิ่ม methods ที่อนุญาต
+  allowedHeaders: ['Content-Type', 'Authorization'] // เพิ่ม headers ที่อนุญาต
 }));
 
 // --- LINE Bot config ---
