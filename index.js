@@ -78,7 +78,31 @@ app.post("/webhook",
                 text: "ตอนนี้ร้านปิดแล้วค่ะ 🛑\nโปรดกลับมาสั่งอีกครั้งเมื่อร้านเปิดนะคะ 😊",
               });
             }
+          }else if(userText === "สถานะร้าน"){
+            const { data,error} = await superbase
+              .from("shop_settings")
+              .select("is_open")
+              .eq("id", 1)
+              .single();
+
+            if (error) console.error("❌ Supabase error:", error);
+
+            const shopOpen = !!data?.is_open;
+              
+            if(shopOpen){
+              await client.replyMessage(event.replyToken, {
+                type : "text",
+                text : 'ตอนนี้ร้านเปิดแล้วค่ะ 🟢\nรับอะไรดีคะ 😊'
+              })
+            }else{
+              await client.replyMessage(event.replyToken, {
+                type : "text",
+                text : 'ตอนนี้ร้านปิดแล้วค่ะ 🛑\nโปรดกลับมาสั่งอีกครั้งเมื่อร้านเปิดนะคะ 😊'
+              })
+            }
+            
           }
+
           // } else {
           //   await client.replyMessage(event.replyToken, {
           //     type: "text",
