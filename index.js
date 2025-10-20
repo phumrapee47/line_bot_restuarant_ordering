@@ -49,13 +49,15 @@ app.post("/webhook",
         return res.status(200).end();
       }
 
+      // ✅ ส่วนที่แก้ไข - ใน webhook handler
       for (const event of events) {
         if (event.type === "message" && event.message.type === "text") {
           const userText = event.message.text.trim();
           const userId = event.source.userId;
 
+          // ✅ ใช้ else if เพื่อไม่ให้ซ้ำซ้อน
           if (userText === "สั่งอาหาร") {
-            const { data, error } = await supabase
+            const { data, error } = await supabase  // ✅ แก้จาก superbase
               .from("shop_settings")
               .select("is_open")
               .eq("id", 1)
@@ -66,7 +68,6 @@ app.post("/webhook",
             const shopOpen = !!data?.is_open;
 
             if (shopOpen) {
-              // ✅ แก้ไข URL ให้ถูกต้อง (ลบ "/" ซ้อน)
               const orderLink = `https://customer-app-restuarant-application.onrender.com?lineUserId=${userId}`;
               await client.replyMessage(event.replyToken, {
                 type: "text",
@@ -78,63 +79,45 @@ app.post("/webhook",
                 text: "ตอนนี้ร้านปิดแล้วค่ะ 🛑\nโปรดกลับมาสั่งอีกครั้งเมื่อร้านเปิดนะคะ 😊",
               });
             }
-          }else if(userText === "สถานะร้าน"){
-            const { data,error} = await superbase
+          } 
+          // ✅ เปลี่ยนเป็น else if และลบโค้ดซ้ำ
+          else if (userText === "สถานะร้าน") {
+            const { data, error } = await supabase  // ✅ แก้จาก superbase
               .from("shop_settings")
               .select("is_open")
               .eq("id", 1)
               .single();
 
-            if (error) console.error("❌ Supabase error:", error);
+            if (error) {
+              console.error("❌ Supabase error:", error);
+              await client.replyMessage(event.replyToken, {
+                type: "text",
+                text: "❌ เกิดข้อผิดพลาดในการตรวจสอบสถานะร้าน กรุณาลองใหม่อีกครั้ง"
+              });
+              continue;
+            }
 
             const shopOpen = !!data?.is_open;
-              
-            if(shopOpen){
+
+            if (shopOpen) {
               await client.replyMessage(event.replyToken, {
-                type : "text",
-                text : 'ตอนนี้ร้านเปิดแล้วค่ะ 🟢\nรับอะไรดีคะ 😊'
-              })
-            }else{
+                type: "text",
+                text: "✅ ตอนนี้ร้านเปิดแล้วค่ะ 🟢\nพิมพ์ 'สั่งอาหาร' เพื่อสั่งได้เลยค่ะ 😊"
+              });
+            } else {
               await client.replyMessage(event.replyToken, {
-                type : "text",
-                text : 'ตอนนี้ร้านปิดแล้วค่ะ 🛑\nโปรดกลับมาสั่งอีกครั้งเมื่อร้านเปิดนะคะ 😊'
-              })
+                type: "text",
+                text: "🛑 ตอนนี้ร้านปิดแล้วค่ะ\nโปรดกลับมาสั่งอีกครั้งเมื่อร้านเปิดนะคะ 😊"
+              });
             }
-            
           }
-
-          // } else {
-          //   await client.replyMessage(event.replyToken, {
-          //     type: "text",
-          //     text: "พิมพ์คำว่า 'สั่งอาหาร' เพื่อเข้าสู่หน้าเว็บไซต์ครับ 😊",
-          //   });
-          // }
-
-          if(userText === "สถานะร้าน"){
-            const { data,error} = await superbase
-              .from("shop_settings")
-              .select("is_open")
-              .eq("id", 1)
-              .single();
-
-            if (error) console.error("❌ Supabase error:", error);
-
-            const shopOpen = !!data?.is_open;
-              
-            if(shopOpen){
-              await client.replyMessage(event.replyToken, {
-                type : "text",
-                text : 'ตอนนี้ร้านเปิดแล้วค่ะ 🟢\nรับอะไรดีคะ 😊'
-              })
-            }else{
-              await client.replyMessage(event.replyToken, {
-                type : "text",
-                text : 'ตอนนี้ร้านปิดแล้วค่ะ 🛑\nโปรดกลับมาสั่งอีกครั้งเมื่อร้านเปิดนะคะ 😊'
-              })
-            }
-            
+          // ✅ (Optional) ข้อความเมื่อพิมพ์คำอื่น
+          else {
+            await client.replyMessage(event.replyToken, {
+              type: "text",
+              text: "📝 คำสั่งที่ใช้ได้:\n• พิมพ์ 'สั่งอาหาร' เพื่อเข้าสู่หน้าเว็บไซต์\n• พิมพ์ 'สถานะร้าน' เพื่อเช็คสถานะ"
+            });
           }
-
         }
       }
 
