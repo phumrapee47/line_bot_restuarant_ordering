@@ -8,7 +8,7 @@ dotenv.config();
 
 const app = express();
 
-app.use(express.json());
+app.use("/api", express.json());
 
 // ✅ แก้ไข CORS - ลบ "/" ซ้อนท้าย
 app.use(
