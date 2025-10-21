@@ -8,6 +8,8 @@ dotenv.config();
 
 const app = express();
 
+app.use(express.json());
+
 // ✅ แก้ไข CORS - ลบ "/" ซ้อนท้าย
 app.use(cors({
   origin: [
@@ -130,10 +132,12 @@ app.post("/webhook",
 );
 
 // ✅ ใช้ express.json() สำหรับ API อื่น ๆ
-app.use(express.json());
+// app.use(express.json());
 
 // ✅ API แจ้งเตือนสถานะออเดอร์ (ปรับปรุงแล้ว)
 app.post("/api/notify-order-status", async (req, res) => {
+  console.log("📩 Raw headers:", req.headers);
+  console.log("📩 Raw body:", req.body);
   try {
     console.log("📨 Notification request:", req.body);
     
