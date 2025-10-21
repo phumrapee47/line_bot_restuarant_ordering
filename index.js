@@ -11,16 +11,19 @@ const app = express();
 app.use(express.json());
 
 // ✅ แก้ไข CORS - ลบ "/" ซ้อนท้าย
-app.use(cors({
-  origin: [
-    'https://customer-app-restuarant-application.onrender.com',
-    'https://admin-dashboard-restuarant-application.onrender.com', // เพิ่ม URL ของ Admin Dashboard
-    'http://localhost:5173' // สำหรับ dev
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // เพิ่ม methods ที่อนุญาต
-  allowedHeaders: ['Content-Type', 'Authorization'] // เพิ่ม headers ที่อนุญาต
-}));
+app.use(
+  cors({
+    origin: [
+      // "http://localhost:5173",
+      // "http://localhost:5174",
+      // "http://localhost:3001", // frontend ตอน dev
+      "https://admin-dashboard-restuarant-application.onrender.com", // ตัวจริง (แก้ให้ตรงชื่อจริง)
+      "https://customer-app-restuarant-application.onrender.com" // ถ้ามีอีกตัว
+    ],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // --- LINE Bot config ---
 const config = {
@@ -136,13 +139,14 @@ app.post("/webhook",
 
 // ✅ API แจ้งเตือนสถานะออเดอร์ (ปรับปรุงแล้ว)
 app.post("/api/notify-order-status", async (req, res) => {
-  console.log("📩 Raw headers:", req.headers);
-  console.log("📩 Raw body:", req.body);
+  console.log("📨 Headers:", req.headers);
+  console.log("📨 Body:", req.body);
+  console.log("📨 Origin:", req.headers.origin);
   try {
     console.log("📨 Notification request:", req.body);
     
     const { lineUserId, orderNumber, status, orderTotal } = req.body;
-    
+    console.log("📩 LINE Notify Payload:", req.body);
     // Validation
     if (!lineUserId) {
       console.error("❌ Missing LINE User ID");
