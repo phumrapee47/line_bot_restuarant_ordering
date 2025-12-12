@@ -14,9 +14,8 @@ app.use("/api", express.json());
 app.use(
   cors({
     origin: [
-      // "http://localhost:5173",
-      // "http://localhost:5174",
-      // "http://localhost:3001", // frontend ตอน dev
+      // "http://localhost:5173", // Vite dev server
+      // "http://localhost:3000",
       "https://admin-dashboard-restuarant-application.onrender.com", // ตัวจริง (แก้ให้ตรงชื่อจริง)
       "https://customer-app-restuarant-application.onrender.com" // ถ้ามีอีกตัว
     ],
@@ -243,4 +242,30 @@ app.post("/api/test-notification", async (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+});
+
+// API สำหรับแจ้งเตือนไปยัง Admin เมื่อมีออเดอร์ใหม่เข้ามา
+app.post('/api/notify-admin-order', async (req, res) => {
+  try {
+    const adminLineId = process.env.ADMIN_LINE_USER_ID;
+    if (!adminLineId) {
+      return res.status(500).json({ success: false, error: 'ADMIN_LINE_USER_ID not configured in server .env' });
+    }
+
+    const { orderId, customerName, totalAmount, items } = req.body;
+
+    if (!orderId) {
+      return res.status(400).json({ success: false, error: 'orderId is required' });
+    }
+
+    // สร้างข้อความสำหรับ admin (เรียบง่าย)
+    const message = 'มีออเดอร์มาแล้ว';
+
+    await client.pushMessage(adminLineId, { type: 'text', text: message });
+
+    return res.json({ success: true, message: 'Notified admin' });
+  } catch (error) {
+    console.error('Error notifying admin:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
 });
