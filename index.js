@@ -8,21 +8,28 @@ dotenv.config();
 
 const app = express();
 
-app.use("/api", express.json());
-
-// ✅ แก้ไข CORS - ลบ "/" ซ้อนท้าย
+// ✅ CORS must be applied BEFORE routes
 app.use(
   cors({
     origin: [
-      // "http://localhost:5173", // Vite dev server
-      // "http://localhost:3000",
-      "https://admin-dashboard-restuarant-application.onrender.com", // ตัวจริง (แก้ให้ตรงชื่อจริง)
-      "https://customer-app-restuarant-application.onrender.com" // ถ้ามีอีกตัว
+      "http://localhost:5173", // Vite dev server
+      "http://localhost:3000",
+      "https://admin-dashboard-restuarant-application.onrender.com",
+      "https://customer-app-restuarant-application.onrender.com"
     ],
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
   })
 );
+
+app.use("/api", express.json());
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
 
 // --- LINE Bot config ---
 const config = {
@@ -246,26 +253,37 @@ app.listen(PORT, () => {
 
 // API สำหรับแจ้งเตือนไปยัง Admin เมื่อมีออเดอร์ใหม่เข้ามา
 app.post('/api/notify-admin-order', async (req, res) => {
+  console.log('\n🔔 [notify-admin-order] Endpoint called');
+  console.log('Request body:', JSON.stringify(req.body));
+  console.log('Request origin:', req.headers.origin);
+  
   try {
     const adminLineId = process.env.ADMIN_LINE_USER_ID;
+    console.log('Admin LINE ID from env:', adminLineId ? 'SET (first 10 chars: ' + adminLineId.substring(0, 10) + ')' : 'NOT SET');
+    
     if (!adminLineId) {
-      return res.status(500).json({ success: false, error: 'ADMIN_LINE_USER_ID not configured in server .env' });
+      console.error('ERROR: ADMIN_LINE_USER_ID not configured');
+      return res.status(500).json({ success: false, error: 'ADMIN_LINE_USER_ID not configured' });
     }
 
     const { orderId, customerName, totalAmount, items } = req.body;
+    console.log('Order ID:', orderId);
 
     if (!orderId) {
+      console.error('ERROR: orderId missing from request');
       return res.status(400).json({ success: false, error: 'orderId is required' });
     }
 
-    // สร้างข้อความสำหรับ admin (เรียบง่าย)
     const message = 'มีออเดอร์มาแล้ว';
+    console.log('Attempting to push message:', message);
 
     await client.pushMessage(adminLineId, { type: 'text', text: message });
-
+    
+    console.log('SUCCESS: Message sent to admin');
     return res.json({ success: true, message: 'Notified admin' });
   } catch (error) {
-    console.error('Error notifying admin:', error);
+    console.error('ERROR in notify-admin-order:', error.message);
+    console.error('Full error stack:', error);
     return res.status(500).json({ success: false, error: error.message });
   }
 });
