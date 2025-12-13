@@ -254,7 +254,7 @@ app.listen(PORT, () => {
 // API สำหรับแจ้งเตือนไปยัง Admin เมื่อมีออเดอร์ใหม่เข้ามา
 app.post('/api/notify-admin-order', async (req, res) => {
   console.log('\n🔔 [notify-admin-order] Endpoint called');
-  console.log('Request body:', JSON.stringify(req.body));
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
   console.log('Request origin:', req.headers.origin);
   
   try {
@@ -266,7 +266,7 @@ app.post('/api/notify-admin-order', async (req, res) => {
       return res.status(500).json({ success: false, error: 'ADMIN_LINE_USER_ID not configured' });
     }
 
-    const { orderId, customerName, totalAmount, items } = req.body;
+    const { orderId, customerName, totalAmount, items, customerPhone, orderNote, paymentMethod, slipUrl } = req.body;
     console.log('Order ID:', orderId);
 
     if (!orderId) {
@@ -274,8 +274,33 @@ app.post('/api/notify-admin-order', async (req, res) => {
       return res.status(400).json({ success: false, error: 'orderId is required' });
     }
 
-    const message = 'มีออเดอร์มาแล้ว';
-    console.log('Attempting to push message:', message);
+    // สร้างรายการสินค้า
+    let itemsList = '';
+    if (items && items.length > 0) {
+      itemsList = items.map((item, index) => {
+        const options = [];
+        if (item.size && item.size !== 'normal') {
+          options.push(`ขนาด: ${item.size}`);
+        }
+        if (item.addEgg && item.addEgg !== 'none') {
+          options.push(`ไข่: ${item.addEgg}`);
+        }
+        if (item.note) {
+          options.push(`หมายเหตุ: ${item.note}`);
+        }
+        
+        const optionsStr = options.length > 0 ? ` (${options.join(', ')})` : '';
+        return `${index + 1}. ${item.name} x${item.quantity}${optionsStr}`;
+      }).join('\n');
+    } else {
+      itemsList = 'ไม่มีข้อมูลรายการสินค้า';
+    }
+
+    // สร้างข้อความที่ครบถ้วน
+    const message = `🔔 ออเดอร์ใหม่เข้ามา!\n━━━━━━━━━━━━━━━━━━━\n📦 หมายเลขออเดอร์: #${orderId}\n เบอร์โทรศัพท์: ${customerPhone || 'ไม่ระบุ'}\n💰 ยอดรวม: ${totalAmount}฿\n💳 วิธีชำระเงิน: ${paymentMethod === 'online' ? '💳 โอนออนไลน์' : '💵 เงินสด'}\n\n📋 รายการสินค้า:\n${itemsList}\n${orderNote ? `\n📝 หมายเหตุเพิ่มเติม:\n${orderNote}` : ''}${slipUrl ? `\n🧾 สลิป: ${slipUrl}` : ''}\n━━━━━━━━━━━━━━━━━━━`;
+
+    console.log('Attempting to push message to admin');
+    console.log('Message preview:', message);
 
     await client.pushMessage(adminLineId, { type: 'text', text: message });
     
