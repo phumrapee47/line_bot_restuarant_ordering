@@ -266,7 +266,7 @@ app.post('/api/notify-admin-order', async (req, res) => {
       return res.status(500).json({ success: false, error: 'ADMIN_LINE_USER_ID not configured' });
     }
 
-    const { orderId,totalAmount,items, customerPhone, paymentMethod} = req.body;
+    const { orderId, totalAmount, customerPhone, paymentMethod } = req.body;
     console.log('Order ID:', orderId);
 
     if (!orderId) {
@@ -274,39 +274,8 @@ app.post('/api/notify-admin-order', async (req, res) => {
       return res.status(400).json({ success: false, error: 'orderId is required' });
     }
 
-
-    // สร้างรายการสินค้า
-    let itemsList = '';
-    if (items && items.length > 0) {
-      itemsList = items.map((item, index) => {
-        const options = [];
-        if (item.size) {
-          if(item.size == 'normal'){
-            options.push(`ขนาด: ธรรมดา`);
-          }else{
-            options.push(`ขนาด: พิเศษ`);
-          }
-        }
-        if (item.addEgg && item.addEgg !== 'none') {
-          if (item.addEgg == 'fried') {
-            options.push(`ไข่: ไข่เจียว`);
-          } else {
-            options.push(`ไข่: ไข่ดาว`);
-          }
-        }
-        if (item.note) {
-          options.push(`หมายเหตุ: ${item.note}`);
-        }
-        
-        const optionsStr = options.length > 0 ? ` (${options.join(', ')})` : '';
-        return `${index + 1}. ${item.name} x${item.quantity}${optionsStr}`;
-      }).join('\n');
-    } else {
-      itemsList = 'ไม่มีข้อมูลรายการสินค้า';
-    }
-
-    // สร้างข้อความที่ครบถ้วน
-    const message = `🔔 ออเดอร์ใหม่เข้ามา!\n📦 หมายเลขออเดอร์: #${orderId}\n เบอร์โทรศัพท์: ${customerPhone || 'ไม่ระบุ'}\n💰 ยอดรวม: ${totalAmount}฿\n💳 วิธีชำระเงิน: ${paymentMethod === 'online' ? '💳 โอนออนไลน์' : '💵 เงินสด'}}`;
+    // สร้างข้อความสำหรับ admin
+    const message = `🔔 ออเดอร์ใหม่เข้ามา!\n📦 หมายเลขออเดอร์: #${orderId}\n📱 เบอร์โทรศัพท์: ${customerPhone || 'ไม่ระบุ'}\n💰 ยอดรวม: ${totalAmount}฿\n💳 วิธีชำระเงิน: ${paymentMethod === 'online' ? '💳 โอนออนไลน์' : '💵 เงินสด'}`;
 
     console.log('Attempting to push message to admin');
     console.log('Message preview:', message);
@@ -317,6 +286,36 @@ app.post('/api/notify-admin-order', async (req, res) => {
     return res.json({ success: true, message: 'Notified admin' });
   } catch (error) {
     console.error('ERROR in notify-admin-order:', error.message);
+    console.error('Full error stack:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ✅ API ส่งหมายเลขออเดอร์ให้ลูกค้า
+app.post('/api/send-order-number', async (req, res) => {
+  console.log('\n📦 [send-order-number] Endpoint called');
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
+  
+  try {
+    const { lineUserId, orderId } = req.body;
+    console.log('Order ID:', orderId);
+
+    if (!lineUserId || !orderId) {
+      console.error('ERROR: lineUserId or orderId missing');
+      return res.status(400).json({ success: false, error: 'lineUserId and orderId are required' });
+    }
+
+    const message = `✅ ออเดอร์ของคุณได้รับแล้ว!\n\n📦 หมายเลขออเดอร์: #${orderId}\n\n⏳ กรุณารอการยืนยันจากร้านค้า`;
+
+    console.log('Attempting to push order number to customer');
+    console.log('Message preview:', message);
+
+    await client.pushMessage(lineUserId, { type: 'text', text: message });
+    
+    console.log('SUCCESS: Order number sent to customer');
+    return res.json({ success: true, message: 'Order number sent' });
+  } catch (error) {
+    console.error('ERROR in send-order-number:', error.message);
     console.error('Full error stack:', error);
     return res.status(500).json({ success: false, error: error.message });
   }
