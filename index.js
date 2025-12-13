@@ -284,7 +284,7 @@ app.post('/api/notify-admin-order', async (req, res) => {
       paymentText = '💵 เงินสด';
     }
     
-    const message = `🔔 ออเดอร์ใหม่เข้ามา!\n━━━━━━━━━━━━━━━━━━━\n📦 หมายเลขออเดอร์: #${orderId}\n📱 เบอร์โทรศัพท์: ${customerPhone || 'ไม่ระบุ'}\n💰 ยอดรวม: ${totalAmount}฿\n💳 วิธีชำระเงิน: ${paymentText}`;
+    const message = `🔔 ออเดอร์ใหม่เข้ามา!\n📦 หมายเลขออเดอร์: #${orderId}\n📱 เบอร์โทรศัพท์: ${customerPhone || 'ไม่ระบุ'}\n💰 ยอดรวม: ${totalAmount}฿\n💳 วิธีชำระเงิน: ${paymentText}`;
 
     console.log('Attempting to push message to admin');
     console.log('Message preview:', message);
