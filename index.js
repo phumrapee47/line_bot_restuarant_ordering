@@ -266,7 +266,7 @@ app.post('/api/notify-admin-order', async (req, res) => {
       return res.status(500).json({ success: false, error: 'ADMIN_LINE_USER_ID not configured' });
     }
 
-    const { orderId, totalAmount, items, customerPhone, orderNote, paymentMethod, slipUrl } = req.body;
+    const { orderId,totalAmount,items, customerPhone, paymentMethod} = req.body;
     console.log('Order ID:', orderId);
 
     if (!orderId) {
@@ -306,7 +306,7 @@ app.post('/api/notify-admin-order', async (req, res) => {
     }
 
     // สร้างข้อความที่ครบถ้วน
-    const message = `🔔 ออเดอร์ใหม่เข้ามา!\n📦 หมายเลขออเดอร์: #${orderId}\n เบอร์โทรศัพท์: ${customerPhone || 'ไม่ระบุ'}\n💰 ยอดรวม: ${totalAmount}฿\n💳 วิธีชำระเงิน: ${paymentMethod === 'online' ? '💳 โอนออนไลน์' : '💵 เงินสด'}\n\n📋 รายการสินค้า:\n${itemsList}\n${orderNote ? `\n📝 หมายเหตุเพิ่มเติม:\n${orderNote}` : ''}${slipUrl ? `\n🧾 สลิป: ${slipUrl}` : ''}`;
+    const message = `🔔 ออเดอร์ใหม่เข้ามา!\n📦 หมายเลขออเดอร์: #${orderId}\n เบอร์โทรศัพท์: ${customerPhone || 'ไม่ระบุ'}\n💰 ยอดรวม: ${totalAmount}฿\n💳 วิธีชำระเงิน: ${paymentMethod === 'online' ? '💳 โอนออนไลน์' : '💵 เงินสด'}}`;
 
     console.log('Attempting to push message to admin');
     console.log('Message preview:', message);
