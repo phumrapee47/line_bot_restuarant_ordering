@@ -268,6 +268,8 @@ app.post('/api/notify-admin-order', async (req, res) => {
 
     const { orderId, totalAmount, customerPhone, paymentMethod } = req.body;
     console.log('Order ID:', orderId);
+    console.log('Payment Method:', paymentMethod);
+    console.log('Payment Method Type:', typeof paymentMethod);
 
     if (!orderId) {
       console.error('ERROR: orderId missing from request');
@@ -275,7 +277,14 @@ app.post('/api/notify-admin-order', async (req, res) => {
     }
 
     // สร้างข้อความสำหรับ admin
-    const message = `🔔 ออเดอร์ใหม่เข้ามา!\n📦 หมายเลขออเดอร์: #${orderId}\n📱 เบอร์โทรศัพท์: ${customerPhone || 'ไม่ระบุ'}\n💰 ยอดรวม: ${totalAmount}฿\n💳 วิธีชำระเงิน: ${paymentMethod === 'online' ? '💳 โอนออนไลน์' : '💵 เงินสด'}`;
+    let paymentText = '❓ ไม่ระบุ';
+    if (paymentMethod === 'online') {
+      paymentText = '💳 โอนออนไลน์';
+    } else if (paymentMethod === 'cash') {
+      paymentText = '💵 เงินสด';
+    }
+    
+    const message = `🔔 ออเดอร์ใหม่เข้ามา!\n━━━━━━━━━━━━━━━━━━━\n📦 หมายเลขออเดอร์: #${orderId}\n📱 เบอร์โทรศัพท์: ${customerPhone || 'ไม่ระบุ'}\n💰 ยอดรวม: ${totalAmount}฿\n💳 วิธีชำระเงิน: ${paymentText}`;
 
     console.log('Attempting to push message to admin');
     console.log('Message preview:', message);
@@ -305,7 +314,7 @@ app.post('/api/send-order-number', async (req, res) => {
       return res.status(400).json({ success: false, error: 'lineUserId and orderId are required' });
     }
 
-    const message = `✅ ออเดอร์ของคุณได้รับแล้ว!\n\n📦 หมายเลขออเดอร์: #${orderId}\n\n⏳ กรุณารอการยืนยันจากร้านค้า`;
+    const message = `✅ ออเดอร์ของคุณได้รับแล้ว!\n📦 หมายเลขออเดอร์: #${orderId}\nกรุณารอการยืนยันจากร้านค้า`;
 
     console.log('Attempting to push order number to customer');
     console.log('Message preview:', message);
