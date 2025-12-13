@@ -266,7 +266,7 @@ app.post('/api/notify-admin-order', async (req, res) => {
       return res.status(500).json({ success: false, error: 'ADMIN_LINE_USER_ID not configured' });
     }
 
-    const { orderId, customerName, totalAmount, items, customerPhone, orderNote, paymentMethod, slipUrl } = req.body;
+    const { orderId, totalAmount, items, customerPhone, orderNote, paymentMethod, slipUrl } = req.body;
     console.log('Order ID:', orderId);
 
     if (!orderId) {
@@ -274,16 +274,25 @@ app.post('/api/notify-admin-order', async (req, res) => {
       return res.status(400).json({ success: false, error: 'orderId is required' });
     }
 
+
     // สร้างรายการสินค้า
     let itemsList = '';
     if (items && items.length > 0) {
       itemsList = items.map((item, index) => {
         const options = [];
-        if (item.size && item.size !== 'normal') {
-          options.push(`ขนาด: ${item.size}`);
+        if (item.size) {
+          if(item.size == 'normal'){
+            options.push(`ขนาด: ธรรมดา`);
+          }else{
+            options.push(`ขนาด: พิเศษ`);
+          }
         }
         if (item.addEgg && item.addEgg !== 'none') {
-          options.push(`ไข่: ${item.addEgg}`);
+          if (item.addEgg == 'fried') {
+            options.push(`ไข่: ไข่เจียว`);
+          } else {
+            options.push(`ไข่: ไข่ดาว`);
+          }
         }
         if (item.note) {
           options.push(`หมายเหตุ: ${item.note}`);
@@ -297,7 +306,7 @@ app.post('/api/notify-admin-order', async (req, res) => {
     }
 
     // สร้างข้อความที่ครบถ้วน
-    const message = `🔔 ออเดอร์ใหม่เข้ามา!\n━━━━━━━━━━━━━━━━━━━\n📦 หมายเลขออเดอร์: #${orderId}\n เบอร์โทรศัพท์: ${customerPhone || 'ไม่ระบุ'}\n💰 ยอดรวม: ${totalAmount}฿\n💳 วิธีชำระเงิน: ${paymentMethod === 'online' ? '💳 โอนออนไลน์' : '💵 เงินสด'}\n\n📋 รายการสินค้า:\n${itemsList}\n${orderNote ? `\n📝 หมายเหตุเพิ่มเติม:\n${orderNote}` : ''}${slipUrl ? `\n🧾 สลิป: ${slipUrl}` : ''}\n━━━━━━━━━━━━━━━━━━━`;
+    const message = `🔔 ออเดอร์ใหม่เข้ามา!\n📦 หมายเลขออเดอร์: #${orderId}\n เบอร์โทรศัพท์: ${customerPhone || 'ไม่ระบุ'}\n💰 ยอดรวม: ${totalAmount}฿\n💳 วิธีชำระเงิน: ${paymentMethod === 'online' ? '💳 โอนออนไลน์' : '💵 เงินสด'}\n\n📋 รายการสินค้า:\n${itemsList}\n${orderNote ? `\n📝 หมายเหตุเพิ่มเติม:\n${orderNote}` : ''}${slipUrl ? `\n🧾 สลิป: ${slipUrl}` : ''}`;
 
     console.log('Attempting to push message to admin');
     console.log('Message preview:', message);
